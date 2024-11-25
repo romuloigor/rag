@@ -20,9 +20,6 @@ logging.basicConfig(level=logging.INFO)
 
 controller = CookieController()
 
-DISABLE_LOGIN = True
-st.session_state['DISABLE_LOGIN'] = DISABLE_LOGIN
-
 paginas = [
     st.Page("pages/rag_news.py", title="Noticias", icon="🗞️"),
     st.Page("pages/rag_pdf.py" , title="Documentos", icon="📄"),

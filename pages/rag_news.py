@@ -54,118 +54,116 @@ def delete_news(index, namespace):
     
     return len(vector_ids)
 
-if 'login' in st.session_state:
-    if ( st.session_state['login'] and ( "auth" in st.session_state ) ) or st.session_state.DISABLE_LOGIN:
+
+col1, col2 = st.columns([5, 1])
+
+col1.write('Chat')
+col2.write('Envio das notícias!')
+
+with col1:
+    with st.spinner("Loading..."):
+        os.environ['OPENAI_API_KEY']   = st.secrets.store_api_key.OPENAI_API_KEY
+        os.environ['PINECONE_API_KEY'] = st.secrets.store_api_key.PINECONE_API_KEY
         
-        col1, col2 = st.columns([5, 1])
+        if st.session_state.DISABLE_LOGIN:
+            st.write("Logged in DEV MODE")
+            index_name = 'dev-1024'
+        else:
+            st.write("Logged in")
+            index_name = st.session_state["auth"].split('@')[0].replace('.','-')
+
+        namespace = 'default'
         
-        col1.write('Chat')
-        col2.write('Envio das notícias!')
+        pinecone_client = Pinecone()
+        index           = pinecone_client.Index(index_name)
 
-        with col1:
-            with st.spinner("Loading..."):
-                os.environ['OPENAI_API_KEY']   = st.secrets.store_api_key.OPENAI_API_KEY
-                os.environ['PINECONE_API_KEY'] = st.secrets.store_api_key.PINECONE_API_KEY
-                
-                if st.session_state.DISABLE_LOGIN:
-                    st.write("Logged in DEV MODE")
-                    index_name = 'dev-1024'
-                else:
-                    st.write("Logged in")
-                    index_name = st.session_state["auth"].split('@')[0].replace('.','-')
+        data = list_news(index, namespace)
 
-                namespace = 'default'
-                
-                pinecone_client = Pinecone()
-                index           = pinecone_client.Index(index_name)
-
-                data = list_news(index, namespace)
-
-                data_editor_options = {
-                    "column_config": {
-                        "id": st.column_config.NumberColumn(
-                            "ID",
-                            help="ID",
-                            width=100,
-                        ),
-                        "text": st.column_config.TextColumn(
-                            "Text",
-                            help="Content",
-                            width=1000,
-                        ),
-                        "action": st.column_config.CheckboxColumn(
-                            "Update?",
-                            help="Update?"
-                        )
-                    },
-                    "use_container_width": False,
-                    "num_rows": "dynamic"
-                }
-
-                df = pd.DataFrame(data)
-                edited_df = st.data_editor(df, **data_editor_options)
-                
-                embeddings = pinecone_client.inference.embed(
-                    model="multilingual-e5-large",
-                    inputs=[d['text'] for d in data],
-                    parameters={"input_type": "passage", "truncate": "END"}
+        data_editor_options = {
+            "column_config": {
+                "id": st.column_config.NumberColumn(
+                    "ID",
+                    help="ID",
+                    width=100,
+                ),
+                "text": st.column_config.TextColumn(
+                    "Text",
+                    help="Content",
+                    width=1000,
+                ),
+                "action": st.column_config.CheckboxColumn(
+                    "Update?",
+                    help="Update?"
                 )
+            },
+            "use_container_width": False,
+            "num_rows": "dynamic"
+        }
 
-                #st.write(embeddings)
+        df = pd.DataFrame(data)
+        edited_df = st.data_editor(df, **data_editor_options)
+        
+        embeddings = pinecone_client.inference.embed(
+            model="multilingual-e5-large",
+            inputs=[d['text'] for d in data],
+            parameters={"input_type": "passage", "truncate": "END"}
+        )
 
-                data_hora = datetime.now().strftime('%Y%m%d_%H%M')
+        #st.write(embeddings)
 
-                records = []
-                id = 1
-                for d, e in zip(data, embeddings):
-                    records.append({
-                        "id": id,
-                        "values": e['values'],
-                        "metadata": {'text': d['text'], 'type': 'news', 'date_time': data_hora }
-                    })
-                    id += 1
+        data_hora = datetime.now().strftime('%Y%m%d_%H%M')
 
-                question = st.text_area(
-                    "Faça uma pergunta pertinente as noticias.",
-                    #placeholder="Ajuda!",
-                    value="Tell me about the tech company known as Apple.",
-                    disabled=False,
-                )
+        records = []
+        id = 1
+        for d, e in zip(data, embeddings):
+            records.append({
+                "id": id,
+                "values": e['values'],
+                "metadata": {'text': d['text'], 'type': 'news', 'date_time': data_hora }
+            })
+            id += 1
 
-                st.write(question)
+        question = st.text_area(
+            "Faça uma pergunta pertinente as noticias.",
+            #placeholder="Ajuda!",
+            value="Tell me about the tech company known as Apple.",
+            disabled=False,
+        )
 
-                query_embedding = pinecone_client.inference.embed(
-                    model="multilingual-e5-large",
-                    inputs=[question],
-                    parameters={
-                        "input_type": "query"
-                    }
-                )
+        st.write(question)
 
-                results = index.query(
-                    namespace=namespace,
-                    vector=query_embedding[0].values,
-                    top_k=3,
-                    include_values=False,
-                    include_metadata=True
-                )
+        query_embedding = pinecone_client.inference.embed(
+            model="multilingual-e5-large",
+            inputs=[question],
+            parameters={
+                "input_type": "query"
+            }
+        )
 
-                st.write(results)
+        results = index.query(
+            namespace=namespace,
+            vector=query_embedding[0].values,
+            top_k=3,
+            include_values=False,
+            include_metadata=True
+        )
 
-        with col2:
-            if st.button("Delete news"):
-                number_delete_news = delete_news(index, namespace)
-                st.write(f"news deleted: {number_delete_news}")
+        st.write(results)
 
-            if st.button("Insert news"):
-                index.upsert(vectors=records,namespace=namespace)
-            
-            if st.button("List news"):
-                news = list_news(index, namespace)
-                st.write(f"list news: {news}")
+with col2:
+    if st.button("Delete news"):
+        number_delete_news = delete_news(index, namespace)
+        st.write(f"news deleted: {number_delete_news}")
 
-            if st.button('Ir para Noticias'):
-                st.switch_page('pages/rag_news.py')
+    if st.button("Insert news"):
+        index.upsert(vectors=records,namespace=namespace)
+    
+    if st.button("List news"):
+        news = list_news(index, namespace)
+        st.write(f"list news: {news}")
 
-            if st.button('Ir para Documentos'):
-                st.switch_page('pages/rag_pdf.py')
+    if st.button('Ir para Noticias'):
+        st.switch_page('pages/rag_news.py')
+
+    if st.button('Ir para Documentos'):
+        st.switch_page('pages/rag_pdf.py')
