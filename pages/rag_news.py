@@ -65,13 +65,7 @@ with col1:
         os.environ['OPENAI_API_KEY']   = st.secrets.store_api_key.OPENAI_API_KEY
         os.environ['PINECONE_API_KEY'] = st.secrets.store_api_key.PINECONE_API_KEY
         
-        if st.session_state.DISABLE_LOGIN:
-            st.write("Logged in DEV MODE")
-            index_name = 'dev-1024'
-        else:
-            st.write("Logged in")
-            index_name = st.session_state["auth"].split('@')[0].replace('.','-')
-
+        index_name = 'dev-1024'
         namespace = 'default'
         
         pinecone_client = Pinecone()
