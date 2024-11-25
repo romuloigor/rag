@@ -12,10 +12,8 @@ st.set_page_config(
     }
 )
 
-from streamlit_oauth import OAuth2Component
+#from streamlit_oauth import OAuth2Component
 from streamlit_cookies_controller import CookieController
-
-import login_google
 
 import logging
 logging.basicConfig(level=logging.INFO)
