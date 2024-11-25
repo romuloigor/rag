@@ -19,10 +19,3 @@ PyYAML
 
 pandas
 pandas-datareader
-
-numpy
-numexpr
-matplotlib
-tqdm
-ipywidgets
-ipykernel

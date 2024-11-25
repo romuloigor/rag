@@ -33,5 +33,5 @@ paginas = [
 pagina_atual = st.navigation(paginas)
 pagina_atual.run()
 
-with st.sidebar:
-    st.session_state["login"] = login_google.login(controller)
+#with st.sidebar:
+    #st.session_state["login"] = login_google.login(controller)
