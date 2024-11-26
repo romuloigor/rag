@@ -1,6 +1,7 @@
 streamlit
 streamlit_oauth
 streamlit-cookies-controller
+streamlit-aggrid
 
 openai
 
