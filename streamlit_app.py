@@ -1,9 +1,10 @@
 """Streamlit and OpenAi API."""
 
+import login
 import logging
 import streamlit as st
 
-#from streamlit_oauth import OAuth2Component
+from streamlit_oauth import OAuth2Component
 from streamlit_cookies_controller import CookieController
 
 st.set_page_config(
@@ -18,6 +19,9 @@ st.set_page_config(
     }
 )
 
+DISABLE_LOGIN = True
+st.session_state['DISABLE_LOGIN'] = DISABLE_LOGIN
+
 logging.basicConfig(level=logging.INFO)
 
 controller = CookieController()
@@ -28,3 +32,6 @@ paginas = [
 
 pagina_atual = st.navigation(paginas)
 pagina_atual.run()
+
+with st.sidebar:
+    st.session_state["login"] = login.login(controller)
