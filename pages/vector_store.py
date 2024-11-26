@@ -94,29 +94,29 @@ if st.button('Status store pdf in vector'):
     )
     st.write(vector_store_file)
 
-# Defina a consulta
-consulta = "O que se trata no documento?"
 
-# Crie um assistente com a ferramenta de busca de arquivos
-assistant = client.beta.assistants.create(
-    name="MeuAssistente",
-    model="gpt-4-turbo",
-    tools=[{"type": "file_search"}],
-    tool_resources={"file_search": {"vector_store_ids": ['vs_qg8gwFYbdhfsJMqwXhfTYJXt']}}
-)
+if st.button('Create Assistant'):
+    consulta = "O que se trata no documento?"
 
-# Crie um thread e execute a busca
-thread = client.beta.threads.create(
-    messages=[{"role": "user", "content": consulta}]
-)
-run = client.beta.threads.runs.create_and_poll(
-    thread_id=thread.id,
-    assistant_id=assistant.id
-)
+    assistant = client.beta.assistants.create(
+        name="Assistant",
+        model="gpt-4o",
+        tools=[{"type": "file_search"}],
+        tool_resources={"file_search": {"vector_store_ids": ['vs_qg8gwFYbdhfsJMqwXhfTYJXt']}}
+    )
 
-# Obtenha e exiba os resultados
-messages = client.beta.threads.messages.list(thread.id)
-resposta = messages.data[0].content[0]
-if resposta.type == 'text':
-    st.write("Resposta:", resposta.text.value)
-    st.write("Anotações:", resposta.text.annotations)
+    # Crie um thread e execute a busca
+    thread = client.beta.threads.create(
+        messages=[{"role": "user", "content": consulta}]
+    )
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread.id,
+        assistant_id=assistant.id
+    )
+
+    # Obtenha e exiba os resultados
+    messages = client.beta.threads.messages.list(thread.id)
+    resposta = messages.data[0].content[0]
+    if resposta.type == 'text':
+        st.write("Resposta:", resposta.text.value)
+        st.write("Anotações:", resposta.text.annotations)
