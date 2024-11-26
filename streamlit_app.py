@@ -19,7 +19,7 @@ st.set_page_config(
     }
 )
 
-DISABLE_LOGIN = True
+DISABLE_LOGIN = False
 st.session_state['DISABLE_LOGIN'] = DISABLE_LOGIN
 
 logging.basicConfig(level=logging.INFO)
