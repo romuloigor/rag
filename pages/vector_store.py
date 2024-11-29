@@ -124,4 +124,16 @@ if 'login' in st.session_state:
 
         if st.button('List Assistant'):
             resposta = client.beta.assistants.list()
-            st.write(resposta.data)
+            for item in resposta.data:
+                st.write(item.id)
+
+        if st.button('Delete Assistant'):
+            resposta = client.beta.assistants.list()
+            for item in resposta.data:
+                resposta = client.beta.assistants.delete(assistant_id=item.id)
+                st.write(resposta)
+
+        if st.button('List Threads'):
+            resposta = client.beta.threads.list()
+            for item in resposta.data:
+                st.write(item)
