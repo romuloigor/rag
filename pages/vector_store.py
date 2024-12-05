@@ -6,17 +6,25 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
+from streamlit_option_menu import option_menu
 
 logging.basicConfig(level=logging.INFO)
 
 from openai import OpenAI
 
+#def on_change(key):
+#    selection = st.session_state[key]
+
 if 'login' in st.session_state:
     if ( st.session_state['login'] and ( "auth" in st.session_state ) ) or st.session_state.DISABLE_LOGIN:
         client = OpenAI(api_key=st.secrets.store_api_key.OPENAI_API_KEY)
+            
+        btn_menu = option_menu("Vector", ["Create", "List", "Delete"],
+                                icons=['cloud-upload', "list-task", "folder-x"],
+                                key='vector_action', menu_icon="cast",
+                                default_index=0, orientation="horizontal")
 
-        if st.button('List vector'):
+        if st.session_state['vector_action'] == 'List':
             vector_stores = client.beta.vector_stores.list()
             id = 1
             for item in vector_stores.data:
@@ -55,12 +63,13 @@ if 'login' in st.session_state:
                     hide_index=True,
                 )
 
-        del_vector_id = st.text_input('Delete vector id:')
-        if st.button('Delete vector'):
-            deleted_vector_store = client.beta.vector_stores.delete(
-                vector_store_id=del_vector_id
-            )
-            st.write(deleted_vector_store)
+        if st.session_state['vector_action'] == 'Delete':
+            del_vector_id = st.text_input('Delete vector id:')
+            if st.button('Delete vector'):
+                deleted_vector_store = client.beta.vector_stores.delete(
+                    vector_store_id=del_vector_id
+                )
+                st.write(deleted_vector_store)
 
         vector_name = st.text_input('Create vector name:')
         if st.button('Create vector'):

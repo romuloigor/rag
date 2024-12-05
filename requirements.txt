@@ -1,7 +1,8 @@
 streamlit
 streamlit_oauth
 streamlit-cookies-controller
-streamlit-pills
+streamlit-option-menu
+streamlit-on-Hover-tabs
 
 openai
 
